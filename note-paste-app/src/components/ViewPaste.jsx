@@ -1,17 +1,28 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 const ViewPaste = () => {
   const { id } = useParams();
-  const reduxPastes = useSelector((state) => state.paste.pastes);
+  const reduxPastes = useSelector((state) => state.paste?.pastes || []);
+  const [paste, setPaste] = useState(null);
 
-  // fallback to localStorage if redux is empty
-  const localPastes = JSON.parse(localStorage.getItem("pastes") || "[]");
+  useEffect(() => {
+    // Fallback to localStorage if Redux is empty
+    const localPastes = JSON.parse(localStorage.getItem("pastes") || "[]");
 
-  const allPastes = reduxPastes.length > 0 ? reduxPastes : localPastes;
+    const allPastes = reduxPastes.length > 0 ? reduxPastes : localPastes;
 
-  const paste = allPastes.find((p) => p._id === id);
+    const foundPaste = allPastes.find(
+      (p) => p._id === id || p.id === id // support both _id and id
+    );
+
+    if (!foundPaste) {
+      console.warn("Paste not found for ID:", id);
+    }
+
+    setPaste(foundPaste);
+  }, [id, reduxPastes]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
